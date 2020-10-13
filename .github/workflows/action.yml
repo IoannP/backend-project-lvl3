@@ -1,0 +1,25 @@
+name: Actions
+
+on: 
+  - push
+
+jobs:
+  build:
+    runs-on:  ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [13.x, 14.x]
+
+    steps:
+      - uses: actions/checkout@v1
+      - name: Use Node.js
+        uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version }}
+      - name: Install dependencies
+        run: make install
+      - name: Run ESLint
+        run: make lint
+      - name: Test coverage
+        run: make test-coverage
