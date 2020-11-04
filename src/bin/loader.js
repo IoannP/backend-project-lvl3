@@ -1,9 +1,16 @@
-import process from 'process';
-import loader from '../index';
+#!/usr/bin/env node
 
-const [,, flag, outputDir, pagePath] = process.argv;
-if (flag === '--output') {
-  loader(pagePath, outputDir);
-} else {
-  loader(flag);
-}
+import program from 'commander';
+import loader from '../index';
+import { version, description } from '../../package.json';
+
+program
+  .version(version, '-V, --version', 'output the version number')
+  .description(description)
+  .option('-O, --output [type]', 'the output directory')
+  .arguments('<loadpage>')
+  .action((loadpage) => {
+    const outputDir = program.output ? program.output : process.cwd();
+    loader(loadpage, outputDir);
+  })
+  .parse(process.argv);

@@ -1,5 +1,5 @@
 {
-  "name": "loader",
+  "name": "hexlet_project_page_loader",
   "version": "1.0.0",
   "description": "page-loader",
   "main": "dist/index.js",
@@ -37,8 +37,7 @@
     "nock": "^13.0.4"
   },
   "dependencies": {
-    "angular-html-parser": "^1.7.1",
     "axios": "^0.20.0",
-    "prettier": "2.1.2"
+    "commander": "^4.1.1"
   }
 }

@@ -1,6 +1,5 @@
 import { promises as fs } from 'fs';
 import path from 'path';
-import process from 'process';
 import axios from 'axios';
 
 const getFileName = (pagepath) => {
@@ -13,7 +12,7 @@ const getFileName = (pagepath) => {
   return `${filename}.html`;
 };
 
-export default (pagepath, output = process.cwd()) => {
+export default (pagepath, output) => {
   const filename = getFileName(pagepath);
   const outputPath = path.join(output, filename);
   return axios(pagepath)

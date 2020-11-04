@@ -9,7 +9,7 @@ jobs:
     
     strategy:
       matrix:
-        node-version: [13.x, 14.x]
+        node-version: [14.x]
 
     steps:
       - uses: actions/checkout@v1
@@ -21,5 +21,10 @@ jobs:
         run: make install
       - name: Run ESLint
         run: make lint
-      - name: Test coverage
-        run: make test-coverage
+      - name: test coverage
+        uses: paambaati/codeclimate-action@v2.7.2
+        env:
+          CC_TEST_REPORTER_ID: ${{ secrets.CC_TEST_REPORTER_ID }}
+        with:
+          coverageCommand: make test-coverage
+          debug: tru
