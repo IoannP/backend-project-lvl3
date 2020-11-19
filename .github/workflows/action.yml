@@ -1,12 +1,12 @@
 name: Actions
 
-on: 
+on:
   - push
 
 jobs:
   build:
-    runs-on:  ubuntu-latest
-    
+    runs-on: ubuntu-latest
+
     strategy:
       matrix:
         node-version: [14.x]

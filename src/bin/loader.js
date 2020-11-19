@@ -11,6 +11,8 @@ program
   .arguments('<loadpage>')
   .action((loadpage) => {
     const outputDir = program.output ? program.output : process.cwd();
-    loader(loadpage, outputDir);
+    loader(loadpage, outputDir).catch((error) => {
+      throw error;
+    });
   })
   .parse(process.argv);

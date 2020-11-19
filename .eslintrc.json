@@ -1,5 +1,5 @@
 {
-  "plugins": [ "jest", "babel"],
+  "plugins": ["jest", "babel"],
   "env": {
     "node": true,
     "jest": true
