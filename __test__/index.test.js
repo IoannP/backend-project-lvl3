@@ -56,7 +56,7 @@ test.each([
     link: 'href',
     script: 'src',
   };
-
+  const links = [];
   Object.keys(mapping).forEach(async (tag) => {
     $(tag).each(async (i, el) => {
       const attribute = mapping[tag];
@@ -67,15 +67,19 @@ test.each([
         attributeUrl = new URL(attributeLink, origin);
       }
       if (attributeUrl && attributeUrl.origin === origin) {
-        nock(url.origin).defaultReplyHeaders({
-          'content-type': 'text/html',
-        }).get(url.pathname).reply(200, 'TEST');
-        await loader(link, testDirectory)
-          .catch((error) => {
-            throw error;
-          });
+        links.push(attributeUrl.pathname);
       }
     });
   });
+
+  links.forEach((pathname) => {
+    nock(url.origin).defaultReplyHeaders({
+      'content-type': 'text/html',
+    }).get(pathname).reply(200, 'TEST');
+  });
+  await loader(link, testDirectory)
+    .catch((error) => {
+      throw error;
+    });
   expect(nock.isDone()).toBe(true);
 });

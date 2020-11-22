@@ -1,7 +1,13 @@
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
+import debug from 'debug';
 import cheerio from 'cheerio';
+
+// require('axios-debug-log');
+
+// const log = debug('axios', 'page-loader');
+// log();
 
 const getName = (response, type) => {
   const [contentType] = response.headers['content-type'].split(';');
@@ -58,7 +64,6 @@ export default (link, outputDir) => {
               url: attributeUrl.href,
               responseType: 'stream',
             }).then((resResponse) => {
-              console.log('create')
               const name = getName(resResponse);
               const resoursePath = path.join(outputDir, resoursesDirName, name);
               resResponse.data.pipe(fs.createWriteStream(resoursePath));
@@ -74,7 +79,7 @@ export default (link, outputDir) => {
       });
     })
     .then(() => {
-      console.log('write')
+      console.log('write');
       const filename = getName(pageData);
       const outputPath = path.join(outputDir, filename);
       return fs.promises.writeFile(outputPath, pageData.data);

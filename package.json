@@ -39,8 +39,10 @@
   },
   "dependencies": {
     "axios": "^0.20.0",
+    "axios-debug-log": "^0.8.2",
     "cheerio": "^1.0.0-rc.3",
     "commander": "^4.1.1",
+    "debug": "^2.6.9",
     "loader": "file:../../.nvm/versions/node/v15.0.0/lib/node_modules/loader"
   }
 }
