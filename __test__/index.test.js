@@ -39,21 +39,21 @@ const mapping = {
     after: getFixturesPath('after.html'),
     contentType: { 'Content-Type': 'text/html' },
   },
-  // img: {
-  //   link: '/static/images/logo.svg',
-  //   before: getFixturesPath('logo.svg'),
-  //   contentType: { 'Content-Type': 'image/svg+xml' },
-  // },
-  // link: {
-  //   link: '/static/css/styles.css',
-  //   before: getFixturesPath('styles.css'),
-  //   contentType: { 'Content-Type': 'text/css' },
-  // },
-  // script: {
-  //   link: '/static/js/main.js',
-  //   before: getFixturesPath('main.js'),
-  //   contentType: { 'Content-Type': 'text/javascript ' },
-  // },
+  img: {
+    link: '/static/images/logo.svg',
+    before: getFixturesPath('logo.svg'),
+    contentType: { 'Content-Type': 'image/svg+xml' },
+  },
+  link: {
+    link: '/static/css/styles.css',
+    before: getFixturesPath('styles.css'),
+    contentType: { 'Content-Type': 'text/css' },
+  },
+  script: {
+    link: '/static/js/main.js',
+    before: getFixturesPath('main.js'),
+    contentType: { 'Content-Type': 'text/javascript ' },
+  },
 };
 
 // afterEach(() => {
