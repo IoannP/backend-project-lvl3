@@ -2,12 +2,23 @@ import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
 import debug from 'debug';
+import prettier from 'prettier';
 import cheerio from 'cheerio';
 
-// require('axios-debug-log');
+require('axios-debug-log')({
+  response: function (debug, response) {
+    debug(
+      'Response with ' + response.headers['content-type'],
+      'from ' + response.config.url
+    )
+  },
+  error: function (debug, error) {
+    debug('Boom', error)
+  }
+});
 
-// const log = debug('axios', 'page-loader');
-// log();
+const log = debug('page-loader');
+log();
 
 const getName = (response, type) => {
   const [contentType] = response.headers['content-type'].split(';');
@@ -17,7 +28,7 @@ const getName = (response, type) => {
   const url = new URL(responseUrl);
   const [, identifier] = contentType.split('/');
 
-  const hostname = url.hostname.split('.').filter((x) => x !== 'www');
+  const hostname = url.hostname.split('.');
   const pathname = url.pathname.split('/');
 
   const name = [...hostname, ...pathname].filter((value) => value).join('-');
@@ -38,7 +49,6 @@ export default (link, outputDir) => {
     script: 'src',
   };
 
-  //axios.defaults.baseURL = url.href;
   return axios(link)
     .then((response) => {
       pageData = response;
@@ -65,9 +75,10 @@ export default (link, outputDir) => {
               responseType: 'stream',
             }).then((resResponse) => {
               const name = getName(resResponse);
-              const resoursePath = path.join(outputDir, resoursesDirName, name);
-              resResponse.data.pipe(fs.createWriteStream(resoursePath));
-              $(el).attr(attribute, resoursePath);
+              const newLink = path.join(resoursesDirName, name);
+              const newPath = path.join(outputDir, resoursesDirName, name);
+              resResponse.data.pipe(fs.createWriteStream(newPath));
+              $(el).attr(attribute, newLink);
             }));
           }
         });
@@ -76,13 +87,15 @@ export default (link, outputDir) => {
 
       return Promise.all(promises).then(() => {
         pageData.data = $.html();
+      }).catch((error) => {
+        throw error;
       });
     })
     .then(() => {
-      console.log('write');
       const filename = getName(pageData);
       const outputPath = path.join(outputDir, filename);
-      return fs.promises.writeFile(outputPath, pageData.data);
+      const formatted = prettier.format(pageData.data, { parser: 'html' });
+      return fs.promises.writeFile(outputPath, formatted);
     })
     .catch((error) => {
       throw error;

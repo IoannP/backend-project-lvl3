@@ -1,85 +1,121 @@
-import { promises as fs } from 'fs';
-import os from 'os';
-import path from 'path';
+import process from 'process';
+import debug from 'debug';
 import nock from 'nock';
-import cheerio from 'cheerio';
+import path from 'path';
+import fs from 'fs';
+import os from 'os';
 import loader from '../src/index';
 
 nock.disableNetConnect();
 
-const getPath = (filename, dirpath = '') => path.join('__test__', '__fixtures__', dirpath, filename);
-
 let testDirectory;
-
 beforeEach(async () => {
-  await fs.mkdtemp(path.join(os.tmpdir(), 'page-loader-')).then((data) => {
+  await fs.promises.mkdtemp(path.join(os.tmpdir(), 'page-loader-')).then((data) => {
     testDirectory = data;
   });
 });
 
-afterEach(async () => {
-  await fs.rmdir(testDirectory, { recursive: true });
-});
+const getFixturesPath = (filename) => path.join(__dirname, '..', '__fixtures__', filename);
+const getLoadedPath = (filename, dirname = '') => path.join(testDirectory, dirname, filename);
 
-test.each([
-  'https://www.docker.com/',
-  'https://getbootstrap.com/',
-  'https://nodejs.org/en/',
-])('Load page', async (link) => {
+const getName = (link, type = '') => {
   const url = new URL(link);
-  nock(url.origin)
-    .defaultReplyHeaders({
-      'content-type': 'text/html',
-    }).get(url.pathname).reply(200, 'TEST');
+  const hostname = url.hostname.split('.');
+  const pathname = url.pathname.split('/');
+  const [, identifier] = pathname[pathname.length - 1].split('.');
+  const name = [...hostname, ...pathname].filter((value) => value).join('-');
+  if (type) {
+    return `${name}${type}`;
+  }
+  return !identifier ? `${name}.html` : name;
+};
 
-  await loader(url.href, testDirectory);
-  expect(nock.isDone()).toBeTruthy();
-});
+// const readFile = (filename) => fs.createReadStream(filepath);
 
-test.each([
-  ['https://www.docker.com/', 'docker-com.html'],
-  ['https://getbootstrap.com/', 'getbootstrap-com.html'],
-  ['https://nodejs.org/en/', 'nodejs-org-en.html'],
-])('Load resourses', async (link, fileName) => {
-  const url = new URL(link);
-  const { origin } = url;
+const mapping = {
+  url: new URL('https://nodejs.org/en/'),
+  html: {
+    before: getFixturesPath('before.html'),
+    after: getFixturesPath('after.html'),
+    contentType: { 'Content-Type': 'text/html' },
+  },
+  // img: {
+  //   link: '/static/images/logo.svg',
+  //   before: getFixturesPath('logo.svg'),
+  //   contentType: { 'Content-Type': 'image/svg+xml' },
+  // },
+  // link: {
+  //   link: '/static/css/styles.css',
+  //   before: getFixturesPath('styles.css'),
+  //   contentType: { 'Content-Type': 'text/css' },
+  // },
+  // script: {
+  //   link: '/static/js/main.js',
+  //   before: getFixturesPath('main.js'),
+  //   contentType: { 'Content-Type': 'text/javascript ' },
+  // },
+};
 
-  const recievedPath = getPath(fileName);
-  let recievedData;
-  await fs.readFile(recievedPath, 'utf8').then((data) => {
-    recievedData = data;
-  });
+// afterEach(() => {
+//   fs.rmdirSync(testDirectory, { recursive: true });
+// });
 
-  const $ = cheerio.load(recievedData);
-  const mapping = {
-    img: 'src',
-    link: 'href',
-    script: 'src',
-  };
-  const links = [];
-  Object.keys(mapping).forEach(async (tag) => {
-    $(tag).each(async (i, el) => {
-      const attribute = mapping[tag];
-      const attributeLink = $(el).attr(attribute);
-      let attributeUrl;
+it('Load page', async () => {
+  const htmlFileName = getName(mapping.url.href);
+  // const imgFileName = getName(path.join(mapping.url.origin, mapping.img.link));
+  // const linkFileName = getName(path.join(mapping.url.origin, mapping.link.link));
+  // const scriptFileName = getName(path.join(mapping.url.origin, mapping.script.link));
 
-      if (attributeLink) {
-        attributeUrl = new URL(attributeLink, origin);
-      }
-      if (attributeUrl && attributeUrl.origin === origin) {
-        links.push(attributeUrl.pathname);
-      }
+  // const loadedDir = getName(mapping.url.href, '_file');
+
+  // const imgPath = path.join(testDirectory, loadedDir, imgFileName);
+  // const linkPath = path.join(testDirectory, loadedDir, linkFileName);
+  // const scriptPath = path.join(testDirectory, loadedDir, scriptFileName);
+
+  // let expectedImg;
+  // let expectedLink;
+  // let expectedScript;
+
+  nock(mapping.url.origin)
+    .get(mapping.url.pathname)
+    .replyWithFile(200, mapping.html.before, mapping.html.contentType)
+    .get(mapping.img.link)
+    .replyWithFile(200, mapping.img.before, mapping.img.contentType)
+    .get(mapping.link.link)
+    .replyWithFile(200, mapping.link.before, mapping.link.contentType)
+    .get(mapping.script.link)
+    .replyWithFile(200, mapping.script.before, mapping.script.contentType);
+
+  return loader(mapping.url.href, testDirectory).then(async () => {
+    const afterPath = getFixturesPath('after.html');
+    const loadedPath = getLoadedPath(htmlFileName);
+
+    let afterData;
+    let loadedData;
+
+    await fs.promises.readFile(afterPath, 'utf-8').then((data) => {
+      afterData = data;
     });
+    await fs.promises.readFile(loadedPath, 'utf-8').then((data) => {
+      loadedData = data;
+    });
+
+    expect(afterData).toBe(loadedData);
+  }).catch((error) => {
+    throw error;
   });
 
-  links.forEach((pathname) => {
-    nock(url.origin).defaultReplyHeaders({
-      'content-type': 'text/html',
-    }).get(pathname).reply(200, 'TEST');
-  });
-  await loader(link, testDirectory)
-    .catch((error) => {
-      throw error;
-    });
-  expect(nock.isDone()).toBe(true);
+  // await fs.promises.readFile(imgPath, 'utf-8').then((data) => {
+  //   expectedImg = data;
+  // });
+  // await fs.promises.readFile(linkPath, 'utf-8').then((data) => {
+  //   expectedLink = data;
+  // });
+  // await fs.promises.readFile(scriptPath, 'utf-8').then((data) => {
+  //   expectedScript = data;
+  // });
+
+  // expect(expectedData).toBe(after);
+  // expect(expectedData).toBe(after);
+  // expect(expectedData).toBe(after);
 });
