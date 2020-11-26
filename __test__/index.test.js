@@ -30,7 +30,7 @@ const getName = (link, type = '') => {
   return !identifier ? `${name}.html` : name;
 };
 
-// const readFile = (filename) => fs.createReadStream(filepath);
+//const readFile = (filename) => fs.createReadStream(filepath);
 
 const mapping = {
   url: new URL('https://nodejs.org/en/'),
@@ -41,17 +41,17 @@ const mapping = {
   },
   img: {
     link: '/static/images/logo.svg',
-    before: getFixturesPath('logo.svg'),
+    expected: getFixturesPath('logo.svg'),
     contentType: { 'Content-Type': 'image/svg+xml' },
   },
   link: {
     link: '/static/css/styles.css',
-    before: getFixturesPath('styles.css'),
+    expected: getFixturesPath('styles.css'),
     contentType: { 'Content-Type': 'text/css' },
   },
   script: {
     link: '/static/js/main.js',
-    before: getFixturesPath('main.js'),
+    expected: getFixturesPath('main.js'),
     contentType: { 'Content-Type': 'text/javascript ' },
   },
 };
@@ -62,60 +62,69 @@ const mapping = {
 
 it('Load page', async () => {
   const htmlFileName = getName(mapping.url.href);
-  // const imgFileName = getName(path.join(mapping.url.origin, mapping.img.link));
-  // const linkFileName = getName(path.join(mapping.url.origin, mapping.link.link));
-  // const scriptFileName = getName(path.join(mapping.url.origin, mapping.script.link));
+  const imgFileName = getName(path.join(mapping.url.origin, mapping.img.link));
+  const linkFileName = getName(path.join(mapping.url.origin, mapping.link.link));
+  const scriptFileName = getName(path.join(mapping.url.origin, mapping.script.link));
 
-  // const loadedDir = getName(mapping.url.href, '_file');
+  const resDir = getName(mapping.url.href, '_file');
 
-  // const imgPath = path.join(testDirectory, loadedDir, imgFileName);
-  // const linkPath = path.join(testDirectory, loadedDir, linkFileName);
-  // const scriptPath = path.join(testDirectory, loadedDir, scriptFileName);
+  const htmlPath = getLoadedPath(htmlFileName);
+  const imgPath = getLoadedPath(imgFileName, resDir);
+  const linkPath = getLoadedPath(linkFileName, resDir);
+  const scriptPath = getLoadedPath(scriptFileName, resDir);
 
-  // let expectedImg;
-  // let expectedLink;
-  // let expectedScript;
+  let expectedHtml;
+  let expectedImg;
+  let expectedLink;
+  let expectedScript;
+
+  await fs.promises.readFile(mapping.html.after, 'utf-8').then((data) => {
+    expectedHtml = data;
+  });
+  await fs.promises.readFile(mapping.img.expected, 'utf-8').then((data) => {
+    expectedImg = data;
+  });
+  await fs.promises.readFile(mapping.link.expected, 'utf-8').then((data) => {
+    expectedLink = data;
+  });
+  await fs.promises.readFile(mapping.script.expected, 'utf-8').then((data) => {
+    expectedScript = data;
+  });
 
   nock(mapping.url.origin)
     .get(mapping.url.pathname)
     .replyWithFile(200, mapping.html.before, mapping.html.contentType)
     .get(mapping.img.link)
-    .replyWithFile(200, mapping.img.before, mapping.img.contentType)
+    .replyWithFile(200, mapping.img.expected, mapping.img.contentType)
     .get(mapping.link.link)
-    .replyWithFile(200, mapping.link.before, mapping.link.contentType)
+    .replyWithFile(200, mapping.link.expected, mapping.link.contentType)
     .get(mapping.script.link)
-    .replyWithFile(200, mapping.script.before, mapping.script.contentType);
+    .replyWithFile(200, mapping.script.expected, mapping.script.contentType);
 
-  return loader(mapping.url.href, testDirectory).then(async () => {
-    const afterPath = getFixturesPath('after.html');
-    const loadedPath = getLoadedPath(htmlFileName);
-
-    let afterData;
-    let loadedData;
-
-    await fs.promises.readFile(afterPath, 'utf-8').then((data) => {
-      afterData = data;
-    });
-    await fs.promises.readFile(loadedPath, 'utf-8').then((data) => {
-      loadedData = data;
-    });
-
-    expect(afterData).toBe(loadedData);
-  }).catch((error) => {
+  await loader(mapping.url.href, testDirectory).catch((error) => {
     throw error;
   });
 
-  // await fs.promises.readFile(imgPath, 'utf-8').then((data) => {
-  //   expectedImg = data;
-  // });
-  // await fs.promises.readFile(linkPath, 'utf-8').then((data) => {
-  //   expectedLink = data;
-  // });
-  // await fs.promises.readFile(scriptPath, 'utf-8').then((data) => {
-  //   expectedScript = data;
-  // });
+  let loadedHtml;
+  let loadedImg;
+  let loadedLink;
+  let loadedScript;
 
-  // expect(expectedData).toBe(after);
-  // expect(expectedData).toBe(after);
-  // expect(expectedData).toBe(after);
+  await fs.promises.readFile(htmlPath, 'utf-8').then((data) => {
+    loadedHtml = data;
+  });
+  await fs.promises.readFile(imgPath, 'utf-8').then((data) => {
+    loadedImg = data;
+  });
+  await fs.promises.readFile(linkPath, 'utf-8').then((data) => {
+    loadedLink = data;
+  });
+  await fs.promises.readFile(scriptPath, 'utf-8').then((data) => {
+    loadedScript = data;
+  });
+
+  expect(expectedHtml).toBe(loadedHtml);
+  expect(expectedImg).toBe(loadedImg);
+  expect(expectedLink).toBe(loadedLink);
+  expect(expectedScript).toBe(loadedScript);
 });
