@@ -1,5 +1,3 @@
-import process from 'process';
-import debug from 'debug';
 import nock from 'nock';
 import path from 'path';
 import fs from 'fs';
@@ -29,8 +27,6 @@ const getName = (link, type = '') => {
   }
   return !identifier ? `${name}.html` : name;
 };
-
-//const readFile = (filename) => fs.createReadStream(filepath);
 
 const mapping = {
   url: new URL('https://nodejs.org/en/'),

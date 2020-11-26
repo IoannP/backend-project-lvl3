@@ -1,24 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
-import debug from 'debug';
 import prettier from 'prettier';
 import cheerio from 'cheerio';
-
-require('axios-debug-log')({
-  response: function (debug, response) {
-    debug(
-      'Response with ' + response.headers['content-type'],
-      'from ' + response.config.url
-    )
-  },
-  error: function (debug, error) {
-    debug('Boom', error)
-  }
-});
-
-const log = debug('page-loader');
-log();
 
 const getName = (response, type) => {
   const [contentType] = response.headers['content-type'].split(';');
