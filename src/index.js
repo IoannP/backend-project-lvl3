@@ -1,15 +1,15 @@
 import fs from 'fs';
 import path from 'path';
 import axios from 'axios';
-import prettier from 'prettier';
 import cheerio from 'cheerio';
+import prettier from 'prettier';
+import log from './debug/debug-loader';
 
 const getName = (response, type) => {
   const [contentType] = response.headers['content-type'].split(';');
   const { config } = response;
 
-  const responseUrl = config.url || config.baseURL;
-  const url = new URL(responseUrl);
+  const url = new URL(config.url, config.baseURL);
   const [, identifier] = contentType.split('/');
 
   const hostname = url.hostname.split('.');
@@ -24,16 +24,18 @@ const getName = (response, type) => {
 };
 
 export default (link, outputDir) => {
+  log.pageLog(`Load page from ${link}`);
   const url = new URL(link);
-  const { origin } = url;
+  const { origin, pathname } = url;
   let pageData;
   const mapping = {
     img: 'src',
     link: 'href',
     script: 'src',
   };
-
-  return axios(link)
+  axios.defaults.baseURL = origin;
+  log.axiosLog(axios);
+  return axios(pathname)
     .then((response) => {
       pageData = response;
       const $ = cheerio.load(response.data);
@@ -55,14 +57,15 @@ export default (link, outputDir) => {
           if (attributeUrl && attributeUrl.origin === origin) {
             acc.push(axios({
               method: 'get',
-              url: attributeUrl.href,
+              url: attributeUrl.pathname,
               responseType: 'stream',
             }).then((resResponse) => {
-              const name = getName(resResponse);
-              const newLink = path.join(resoursesDirName, name);
-              const newPath = path.join(outputDir, resoursesDirName, name);
-              resResponse.data.pipe(fs.createWriteStream(newPath));
-              $(el).attr(attribute, newLink);
+              const resFileName = getName(resResponse);
+              const resLink = path.join(resoursesDirName, resFileName);
+              const resPath = path.join(outputDir, resoursesDirName, resFileName);
+              log.pageLog(`Write resource data to file ${resPath}`);
+              resResponse.data.pipe(fs.createWriteStream(resPath));
+              $(el).attr(attribute, resLink);
             }));
           }
         });
@@ -79,6 +82,7 @@ export default (link, outputDir) => {
       const filename = getName(pageData);
       const outputPath = path.join(outputDir, filename);
       const formatted = prettier.format(pageData.data, { parser: 'html' });
+      log.pageLog(`Write page data to file ${outputPath}`);
       return fs.promises.writeFile(outputPath, formatted);
     })
     .catch((error) => {

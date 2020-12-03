@@ -42,6 +42,7 @@
     "cheerio": "^1.0.0-rc.3",
     "commander": "^4.1.1",
     "debug": "^2.6.9",
-    "prettier": "^2.2.0"
+    "prettier": "^2.2.0",
+    "supports-color": "^8.0.0"
   }
 }
