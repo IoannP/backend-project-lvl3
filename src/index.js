@@ -3,7 +3,7 @@ import path from 'path';
 import axios from 'axios';
 import cheerio from 'cheerio';
 import prettier from 'prettier';
-import log from './debug/debug-loader';
+import log from './debug-loader';
 
 const getName = (response, type) => {
   const [contentType] = response.headers['content-type'].split(';');
@@ -74,8 +74,6 @@ export default (link, outputDir) => {
 
       return Promise.all(promises).then(() => {
         pageData.data = $.html();
-      }).catch((error) => {
-        throw error;
       });
     })
     .then(() => {
@@ -86,6 +84,11 @@ export default (link, outputDir) => {
       return fs.promises.writeFile(outputPath, formatted);
     })
     .catch((error) => {
-      throw error;
+      process.exitCode = 1;
+      if (error.response) {
+        const errorLink = path.join(origin, error.config.url);
+        throw new Error(`Error: ${error.message} from ${errorLink}.`);
+      }
+      throw new Error(`Request failed during load page from ${link}. Error: ${error.message}`);
     });
 };

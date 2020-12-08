@@ -52,11 +52,11 @@ const mapping = {
   },
 };
 
-// afterEach(() => {
-//   fs.rmdirSync(testDirectory, { recursive: true });
-// });
+afterEach(() => {
+  fs.rmdirSync(testDirectory, { recursive: true });
+});
 
-it('Load page', async () => {
+test('Load page', async () => {
   const htmlFileName = getName(mapping.url.href);
   const imgFileName = getName(path.join(mapping.url.origin, mapping.img.link));
   const linkFileName = getName(path.join(mapping.url.origin, mapping.link.link));
@@ -123,4 +123,20 @@ it('Load page', async () => {
   expect(expectedImg).toBe(loadedImg);
   expect(expectedLink).toBe(loadedLink);
   expect(expectedScript).toBe(loadedScript);
+});
+
+describe('errors', () => {
+  test('status code 400', async () => {
+    nock(mapping.url.origin)
+      .get(mapping.url.pathname)
+      .reply(400);
+    await expect(loader(mapping.url.href, testDirectory)).rejects.toThrow('Request failed with status code 400');
+  });
+
+  test('No such file or directory', async () => {
+    nock(mapping.url.origin)
+      .get(mapping.url.pathname)
+      .reply(200, mapping.html.before, mapping.html.contentType);
+    await expect(loader(mapping.url.href, '/test')).rejects.toThrow('no such file or directory');
+  });
 });
