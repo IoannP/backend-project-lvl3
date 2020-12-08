@@ -11,3 +11,13 @@ To load in specific directory use `-O --output` flag
 > `npx page-loader -O /home https://github.com/`
 
 [![asciicast](https://asciinema.org/a/hbepqMk6qkFmFLwWv4uyHCyWn.svg)](https://asciinema.org/a/hbepqMk6qkFmFLwWv4uyHCyWn)
+
+
+#### Debug
+
+[![asciicast](https://asciinema.org/a/0L0jMQaMIxtmmfV9XX1H1TJdN.svg)](https://asciinema.org/a/0L0jMQaMIxtmmfV9XX1H1TJdN)
+
+
+#### Errors
+
+[![asciicast](https://asciinema.org/a/NPCfC9RVyBfohDSjN5ilf0kCj.svg)](https://asciinema.org/a/NPCfC9RVyBfohDSjN5ilf0kCj)
