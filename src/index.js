@@ -89,7 +89,6 @@ export default (link, outputDir) => {
       return fs.promises.writeFile(outputPath, formatted);
     })
     .catch((error) => {
-      process.exitCode = 1;
       throw new Error(`Request failed during load page from ${link}. Error: ${error.message}.`);
     });
 };
