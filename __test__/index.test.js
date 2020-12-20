@@ -3,6 +3,7 @@ import path from 'path';
 import fs from 'fs';
 import os from 'os';
 import loader from '../src/index';
+import getName from '../src/utils';
 
 nock.disableNetConnect();
 
@@ -15,18 +16,6 @@ beforeEach(async () => {
 
 const getFixturesPath = (filename) => path.join(__dirname, '..', '__fixtures__', filename);
 const getLoadedPath = (filename, dirname = '') => path.join(testDirectory, dirname, filename);
-
-const getName = (link, type = '') => {
-  const url = new URL(link);
-  const hostname = url.hostname.split('.');
-  const pathname = url.pathname.split('/');
-  const [, identifier] = pathname[pathname.length - 1].split('.');
-  const name = [...hostname, ...pathname].filter((value) => value).join('-');
-  if (type) {
-    return `${name}${type}`;
-  }
-  return !identifier ? `${name}.html` : name;
-};
 
 const mapping = {
   url: new URL('https://nodejs.org/en/'),
@@ -57,12 +46,16 @@ afterEach(() => {
 });
 
 test('Load page', async () => {
-  const htmlFileName = getName(mapping.url.href);
-  const imgFileName = getName(path.join(mapping.url.origin, mapping.img.link));
-  const linkFileName = getName(path.join(mapping.url.origin, mapping.link.link));
-  const scriptFileName = getName(path.join(mapping.url.origin, mapping.script.link));
+  const imgURL = new URL(mapping.img.link, mapping.url.origin);
+  const linkURL = new URL(mapping.link.link, mapping.url.origin);
+  const scriptURL = new URL(mapping.script.link, mapping.url.origin);
 
-  const resDir = getName(mapping.url.href, '_file');
+  const htmlFileName = getName(mapping.url);
+  const imgFileName = getName(imgURL);
+  const linkFileName = getName(linkURL);
+  const scriptFileName = getName(scriptURL);
+
+  const resDir = getName(mapping.url, 'dir');
 
   const htmlPath = getLoadedPath(htmlFileName);
   const imgPath = getLoadedPath(imgFileName, resDir);
