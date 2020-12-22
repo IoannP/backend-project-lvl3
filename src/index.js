@@ -36,7 +36,7 @@ export default (link, outputDir) => {
           const attributeLink = $(el).attr(attribute);
           const attributeUrl = new URL(attributeLink, origin);
           if (attributeUrl.origin === origin) {
-            const promise = axios({
+            acc.push(axios({
               method: 'get',
               url: attributeUrl.href,
               responseType: 'stream',
@@ -44,28 +44,29 @@ export default (link, outputDir) => {
               .then((resResponse) => {
                 const resFileName = getName(attributeUrl);
                 const resLink = path.join(resoursesDirName, resFileName);
-                const resPath = path.join(outputDir, resLink);
+                const resPath = path.join(outputDir, resoursesDirName, resFileName);
                 $(el).attr(attribute, resLink);
-
-                return new Listr([{
+                return {
                   title: attributeUrl.href,
                   task: () => {
-                    log.pageLog(`Write resource data to file ${resPath}`);
+                    log.pageLog(`Write resource data to file ${attributeUrl.href}`);
                     resResponse.data.pipe(fs.createWriteStream(resPath));
                   },
-                }]).run();
-              });
-            acc.push(promise);
+                };
+              }));
           }
         });
         return acc;
       }, []);
 
-      return Promise.all(promises).then(() => {
+      return Promise.all(promises).then((data) => {
         pageData.data = $.html();
+        return data;
       });
     })
+    .then((data) => new Listr(data, { concurrent: true, exitOnError: false }).run())
     .then(() => {
+      console.log('-------------------------------------------------------------------');
       const filename = getName(url);
       const outputPath = path.join(outputDir, filename);
       const formatted = prettier.format(pageData.data, { parser: 'html' });
