@@ -1,41 +1,41 @@
 import nock from 'nock';
-import path from 'path';
 import fs from 'fs';
 import os from 'os';
 import loader from '../src/index';
-import getName from '../src/utils';
+import { getName, getPath } from '../src/utils';
 
 nock.disableNetConnect();
 
 let testDirectory;
 beforeEach(async () => {
-  await fs.promises.mkdtemp(path.join(os.tmpdir(), 'page-loader-')).then((data) => {
+  const dirPath = getPath(os.tmpdir(), 'page-loader-');
+  await fs.promises.mkdtemp(dirPath).then((data) => {
     testDirectory = data;
   });
 });
 
-const getFixturesPath = (filename) => path.join(__dirname, '..', '__fixtures__', filename);
-const getLoadedPath = (filename, dirname = '') => path.join(testDirectory, dirname, filename);
+const getFixturesPath = (filename) => getPath(__dirname, '..', '__fixtures__', filename);
+const getLoadedPath = (filename, dirname = '') => getPath(testDirectory, dirname, filename);
 
 const tagsMap = {
-  url: new URL('https://nodejs.org/en/'),
   html: {
+    url: new URL('https://nodejs.org/en/'),
     before: getFixturesPath('before.html'),
     after: getFixturesPath('after.html'),
     contentType: { 'Content-Type': 'text/html' },
   },
   img: {
-    link: '/static/images/logo.svg',
+    url: new URL('https://nodejs.org/static/images/logo.svg'),
     expected: getFixturesPath('logo.svg'),
     contentType: { 'Content-Type': 'image/svg+xml' },
   },
   link: {
-    link: '/static/css/styles.css',
+    url: new URL('https://nodejs.org/static/css/styles.css'),
     expected: getFixturesPath('styles.css'),
     contentType: { 'Content-Type': 'text/css' },
   },
   script: {
-    link: '/static/js/main.js',
+    url: new URL('https://nodejs.org/static/js/main.js'),
     expected: getFixturesPath('main.js'),
     contentType: { 'Content-Type': 'text/javascript ' },
   },
@@ -46,16 +46,12 @@ afterEach(() => {
 });
 
 test('Load page', async () => {
-  const imgURL = new URL(tagsMap.img.link, tagsMap.url.origin);
-  const linkURL = new URL(tagsMap.link.link, tagsMap.url.origin);
-  const scriptURL = new URL(tagsMap.script.link, tagsMap.url.origin);
+  const htmlFileName = getName(tagsMap.html.url.href);
+  const imgFileName = getName(tagsMap.img.url.href);
+  const linkFileName = getName(tagsMap.link.url.href);
+  const scriptFileName = getName(tagsMap.script.url.href);
 
-  const htmlFileName = getName(tagsMap.url);
-  const imgFileName = getName(imgURL);
-  const linkFileName = getName(linkURL);
-  const scriptFileName = getName(scriptURL);
-
-  const resDir = getName(tagsMap.url, 'dir');
+  const resDir = getName(tagsMap.html.url.href, 'dir');
 
   const htmlPath = getLoadedPath(htmlFileName);
   const imgPath = getLoadedPath(imgFileName, resDir);
@@ -80,17 +76,17 @@ test('Load page', async () => {
     expectedScript = data;
   });
 
-  nock(tagsMap.url.origin)
-    .get(tagsMap.url.pathname)
+  nock(tagsMap.html.url.origin)
+    .get(tagsMap.html.url.pathname)
     .replyWithFile(200, tagsMap.html.before, tagsMap.html.contentType)
-    .get(tagsMap.img.link)
+    .get(tagsMap.img.url.pathname)
     .replyWithFile(200, tagsMap.img.expected, tagsMap.img.contentType)
-    .get(tagsMap.link.link)
+    .get(tagsMap.link.url.pathname)
     .replyWithFile(200, tagsMap.link.expected, tagsMap.link.contentType)
-    .get(tagsMap.script.link)
+    .get(tagsMap.script.url.pathname)
     .replyWithFile(200, tagsMap.script.expected, tagsMap.script.contentType);
 
-  await loader(tagsMap.url.href, testDirectory).catch((error) => {
+  await loader(tagsMap.html.url.href, testDirectory).catch((error) => {
     throw error;
   });
 
@@ -120,16 +116,16 @@ test('Load page', async () => {
 
 describe('errors', () => {
   test('status code 400', async () => {
-    nock(tagsMap.url.origin)
-      .get(tagsMap.url.pathname)
+    nock(tagsMap.html.url.origin)
+      .get(tagsMap.html.url.pathname)
       .reply(400);
-    await expect(loader(tagsMap.url.href, testDirectory)).rejects.toThrow('Request failed with status code 400');
+    await expect(loader(tagsMap.html.url.href, testDirectory)).rejects.toThrow('Request failed with status code 400');
   });
 
   test('No such file or directory', async () => {
-    nock(tagsMap.url.origin)
-      .get(tagsMap.url.pathname)
+    nock(tagsMap.html.url.origin)
+      .get(tagsMap.html.url.pathname)
       .reply(200, tagsMap.html.before, tagsMap.html.contentType);
-    await expect(loader(tagsMap.url.href, '/test')).rejects.toThrow('no such file or directory');
+    await expect(loader(tagsMap.html.url.href, '/test')).rejects.toThrow('no such file or directory');
   });
 });

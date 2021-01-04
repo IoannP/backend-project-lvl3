@@ -1,79 +1,31 @@
-import fs from 'fs';
-import path from 'path';
 import axios from 'axios';
-import Listr from 'listr';
 import cheerio from 'cheerio';
-import prettier from 'prettier';
-import getName from './utils';
 import log from './debug-loader';
-
-const tagsMap = {
-  img: 'src',
-  link: 'href',
-  script: 'src',
-};
+import { getResourcesLinks, loadResources, formatHtml } from './resources';
+import writeData from './page';
 
 export default (link, outputDir) => {
   log.pageLog(`Load page from ${link}`);
-  const url = new URL(link);
-  const { origin, pathname } = url;
-  let pageData;
-
-  axios.defaults.baseURL = origin;
   log.axiosLog(axios);
-  return axios(pathname)
-    .then((response) => {
-      pageData = response;
-      const $ = cheerio.load(response.data);
 
-      const resoursesDirName = getName(url, 'dir');
-      const resoursesDirPath = path.join(outputDir, resoursesDirName);
-      fs.mkdirSync(resoursesDirPath);
+  let page;
 
-      const promises = Object.keys(tagsMap).reduce((acc, tag) => {
-        $(tag).each((i, el) => {
-          const attribute = tagsMap[tag];
-          const attributeLink = $(el).attr(attribute);
-          const attributeUrl = new URL(attributeLink, origin);
-          if (attributeUrl.origin === origin) {
-            acc.push(axios({
-              method: 'get',
-              url: attributeUrl.href,
-              responseType: 'stream',
-            })
-              .then((resResponse) => {
-                const resFileName = getName(attributeUrl);
-                const resLink = path.join(resoursesDirName, resFileName);
-                const resPath = path.join(outputDir, resoursesDirName, resFileName);
-                $(el).attr(attribute, resLink);
-                return {
-                  title: attributeUrl.href,
-                  task: () => {
-                    log.pageLog(`Write resource data to file ${attributeUrl.href}`);
-                    resResponse.data.pipe(fs.createWriteStream(resPath));
-                  },
-                };
-              }));
-          }
-        });
-        return acc;
-      }, []);
-
-      return Promise.all(promises).then((data) => {
-        pageData.data = $.html();
-        return data;
-      });
+  return axios(link)
+    .then(({ data }) => {
+      page = cheerio.load(data);
+      return page;
     })
-    .then((data) => new Listr(data, { concurrent: true, exitOnError: false }).run())
+    .then((html) => getResourcesLinks(link, outputDir, html))
+    .then((linksData) => {
+      formatHtml(page, linksData);
+      return linksData;
+    })
+    .then((linksData) => loadResources(linksData))
     .then(() => {
-      console.log('-------------------------------------------------------------------');
-      const filename = getName(url);
-      const outputPath = path.join(outputDir, filename);
-      const formatted = prettier.format(pageData.data, { parser: 'html' });
-      log.pageLog(`Write page data to file ${outputPath}`);
-      return fs.promises.writeFile(outputPath, formatted);
+      const html = page.html();
+      return writeData(link, outputDir, html);
     })
     .catch((error) => {
-      throw new Error(`Request failed during load page from ${link}. Error: ${error.message}.`);
+      throw error;
     });
 };

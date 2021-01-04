@@ -9,11 +9,11 @@ program
   .description(description)
   .option('-O, --output [type]', 'the output directory')
   .arguments('<loadpage>')
-  .action((loadpage) => {
+  .action((link) => {
     const outputDir = program.output ? program.output : process.cwd();
-    loader(loadpage, outputDir).catch((error) => {
+    loader(link, outputDir).catch((error) => {
       process.exitCode = 1;
-      console.error(error.message);
+      console.error(`Request failed during load page from ${link}. Error: ${error.message}.`);
     });
   })
   .parse(process.argv);
