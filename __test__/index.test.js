@@ -2,20 +2,20 @@ import nock from 'nock';
 import fs from 'fs';
 import os from 'os';
 import loader from '../src/index';
-import { getName, getPath } from '../src/utils';
+import { buildResourcePath, createResourceName } from '../src/utils';
 
 nock.disableNetConnect();
 
 let testDirectory;
 beforeEach(async () => {
-  const dirPath = getPath(os.tmpdir(), 'page-loader-');
+  const dirPath = buildResourcePath(os.tmpdir(), 'page-loader-');
   await fs.promises.mkdtemp(dirPath).then((data) => {
     testDirectory = data;
   });
 });
 
-const getFixturesPath = (filename) => getPath(__dirname, '..', '__fixtures__', filename);
-const getLoadedPath = (filename, dirname = '') => getPath(testDirectory, dirname, filename);
+const getFixturesPath = (filename) => buildResourcePath(__dirname, '..', '__fixtures__', filename);
+const getLoadedPath = (filename, dirname = '') => buildResourcePath(testDirectory, dirname, filename);
 
 const tagsMap = {
   html: {
@@ -46,12 +46,12 @@ afterEach(() => {
 });
 
 test('Load page', async () => {
-  const htmlFileName = getName(tagsMap.html.url.href);
-  const imgFileName = getName(tagsMap.img.url.href);
-  const linkFileName = getName(tagsMap.link.url.href);
-  const scriptFileName = getName(tagsMap.script.url.href);
+  const htmlFileName = createResourceName(tagsMap.html.url.href);
+  const imgFileName = createResourceName(tagsMap.img.url.href);
+  const linkFileName = createResourceName(tagsMap.link.url.href);
+  const scriptFileName = createResourceName(tagsMap.script.url.href);
 
-  const resDir = getName(tagsMap.html.url.href, 'dir');
+  const resDir = createResourceName(tagsMap.html.url.href, 'dir');
 
   const htmlPath = getLoadedPath(htmlFileName);
   const imgPath = getLoadedPath(imgFileName, resDir);

@@ -1,7 +1,7 @@
 import fs from 'fs';
 import axios from 'axios';
 import Listr from 'listr';
-import { getName, getPath } from './utils';
+import { buildResourcePath, createResourceName } from './utils';
 import log from './debug-loader';
 
 const tagsMap = {
@@ -15,8 +15,8 @@ const isSameOrigin = (url1, url2) => url1.origin === url2.origin;
 const getTags = (html) => Object.keys(tagsMap).flatMap((tag) => html(tag).get());
 
 const createResDir = (link, dir) => {
-  const name = getName(link, 'dir');
-  const path = getPath(dir, name);
+  const name = createResourceName(link, 'dir');
+  const path = buildResourcePath(dir, name);
   fs.mkdirSync(path);
   return { name, path };
 };
@@ -33,26 +33,25 @@ const getResourcesLinks = (pageLink, outputDir, html) => {
   const resDir = createResDir(pageLink, outputDir);
   const tags = getTags(html);
   const links = getLinks(tags);
+
   return links
-    .reduce((acc, link) => {
-      const resURL = new URL(link, pageLink);
-      const isSame = isSameOrigin(pageURL, resURL);
-      if (!isSame) {
-        return acc;
-      }
+    .map((link) => {
+      const url = new URL(link, pageLink);
+      return { link, url };
+    })
+    .filter(({ url }) => isSameOrigin(pageURL, url))
+    .map(({ link, url }) => {
+      const filename = createResourceName(url.href);
+      const filepath = buildResourcePath(resDir.path, filename);
+      const newLink = buildResourcePath(resDir.name, filename);
 
-      const filename = getName(resURL.href);
-      const filepath = getPath(resDir.path, filename);
-      const newLink = getPath(resDir.name, filename);
-
-      acc.push({
+      return {
         oldLink: link,
         newLink,
         filepath,
-        href: resURL.href,
-      });
-      return acc;
-    }, []);
+        href: url.href,
+      };
+    });
 };
 
 const formatHtml = (html, linksData) => Object.keys(tagsMap)
