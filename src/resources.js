@@ -1,6 +1,7 @@
 import fs from 'fs';
 import axios from 'axios';
 import Listr from 'listr';
+import prettier from 'prettier';
 import { buildResourcePath, createResourceName } from './utils';
 import log from './debug-loader';
 
@@ -54,8 +55,9 @@ const getResourcesLinks = (pageLink, outputDir, html) => {
     });
 };
 
-const formatHtml = (html, linksData) => Object.keys(tagsMap)
-  .forEach((tag) => {
+const formatHtml = (html, linksData) => {
+  const tags = Object.keys(tagsMap);
+  tags.forEach((tag) => {
     html(tag).each((i, el) => {
       const attribute = tagsMap[tag];
       const link = html(el).attr(attribute);
@@ -65,6 +67,8 @@ const formatHtml = (html, linksData) => Object.keys(tagsMap)
       }
     });
   });
+  return prettier.format(html.html(), { parser: 'html' });
+};
 
 const loadResources = (linksData) => {
   const tasks = linksData.map(({ href, filepath }) => ({
