@@ -13,13 +13,14 @@ export default (link, outputDir) => {
     .then((html) => {
       const linksData = getResourcesLinks(link, outputDir, html);
       const formattedHtml = formatHtml(html, linksData);
-      return Promise.resolve(
-        [
-          loadResources(linksData),
-          writePage(link, outputDir, formattedHtml),
-        ],
-      );
+
+      return { html: formattedHtml, linksData };
     })
+    .then(({ html, linksData }) => {
+      writePage(link, outputDir, html);
+      return linksData;
+    })
+    .then((linksData) => loadResources(linksData))
     .catch((error) => {
       throw error;
     });
