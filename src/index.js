@@ -6,7 +6,7 @@ import {
   generateResourcesLinks,
   loadResources,
   formatHtml,
-  createResourcesDir
+  createResourcesDir,
 } from './resources';
 
 export default (link, outputDir) => {

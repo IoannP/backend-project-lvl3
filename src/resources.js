@@ -93,4 +93,9 @@ const loadResources = (linksData) => {
   return new Listr(tasks, { concurrent: true, exitOnError: false }).run();
 };
 
-export { generateResourcesLinks, loadResources, formatHtml, createResourcesDir };
+export {
+  generateResourcesLinks,
+  loadResources,
+  formatHtml,
+  createResourcesDir,
+};
