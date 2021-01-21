@@ -1,8 +1,13 @@
 import axios from 'axios';
 import cheerio from 'cheerio';
 import log from './debug-loader';
-import { getResourcesLinks, loadResources, formatHtml } from './resources';
 import writePage from './page';
+import {
+  generateResourcesLinks,
+  loadResources,
+  formatHtml,
+  createResourcesDir
+} from './resources';
 
 export default (link, outputDir) => {
   log.pageLog(`Load page from ${link}`);
@@ -11,16 +16,20 @@ export default (link, outputDir) => {
   return axios(link)
     .then(({ data }) => cheerio.load(data))
     .then((html) => {
-      const linksData = getResourcesLinks(link, outputDir, html);
-      const formattedHtml = formatHtml(html, linksData);
+      const resDir = createResourcesDir(link, outputDir);
+      return { html, resDir };
+    })
+    .then(({ html, resDir }) => {
+      const resLinks = generateResourcesLinks(link, resDir, html);
+      const formattedHtml = formatHtml(html, resLinks);
 
-      return { html: formattedHtml, linksData };
+      return { html: formattedHtml, resLinks };
     })
-    .then(({ html, linksData }) => {
+    .then(({ html, resLinks }) => {
       writePage(link, outputDir, html);
-      return linksData;
+      return resLinks;
     })
-    .then((linksData) => loadResources(linksData))
+    .then((resLinks) => loadResources(resLinks))
     .catch((error) => {
       throw error;
     });
