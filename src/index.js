@@ -29,8 +29,5 @@ export default (link, outputDir) => {
       writePage(link, outputDir, html);
       return resLinks;
     })
-    .then((resLinks) => loadResources(resLinks))
-    .catch((error) => {
-      throw error;
-    });
+    .then((resLinks) => loadResources(resLinks));
 };
