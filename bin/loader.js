@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 import program from 'commander';
-import loader from '../index';
-import { version, description } from '../../package.json';
+import loader from '../src/index';
+import { version, description } from '../package.json';
 
 program
   .version(version, '-V, --version', 'output the version number')

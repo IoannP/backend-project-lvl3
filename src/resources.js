@@ -15,7 +15,7 @@ const isSameOrigin = (url1, url2) => url1.origin === url2.origin;
 
 const getTags = (html) => Object.keys(tagsMap).flatMap((tag) => html(tag).get());
 
-const createResDir = (link, dir) => {
+const createResourcesDir = (link, dir) => {
   const name = createResourceName(link, 'dir');
   const path = buildResourcePath(dir, name);
   fs.mkdirSync(path);
@@ -28,10 +28,9 @@ const getLinks = (tags) => tags.map((tag) => {
   return tag.attribs[attribute];
 });
 
-const getResourcesLinks = (pageLink, outputDir, html) => {
+const generateResourcesLinks = (pageLink, resDir, html) => {
   const pageURL = new URL(pageLink);
 
-  const resDir = createResDir(pageLink, outputDir);
   const tags = getTags(html);
   const links = getLinks(tags);
 
@@ -94,4 +93,9 @@ const loadResources = (linksData) => {
   return new Listr(tasks, { concurrent: true, exitOnError: false }).run();
 };
 
-export { getResourcesLinks, loadResources, formatHtml };
+export {
+  generateResourcesLinks,
+  loadResources,
+  formatHtml,
+  createResourcesDir,
+};

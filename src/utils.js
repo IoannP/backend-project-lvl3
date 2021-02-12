@@ -1,28 +1,26 @@
 import path from 'path';
+import _ from 'lodash';
 
-const getLastElement = (array) => {
-  const { length } = array;
-  return array[length - 1];
+const hasExtension = (pathname) => {
+  const { ext } = path.parse(pathname);
+  return ext.length > 0;
 };
 
-const hasExtension = (value) => {
-  const [, filenameExtension] = getLastElement(value).split('.');
-  return !!filenameExtension;
-};
+const unionLists = (list1, list2) => [...list1, ...list2].filter((value) => value.length > 0);
 
-const joinLists = (hostname, pathname) => [...hostname, ...pathname].filter((value) => value.length > 0).join('-');
-
-const buildResourcePath = (...paths) => paths.reduce((acc, value) => path.join(acc, value), '');
+const buildResourcePath = (...paths) => path.join(...paths);
 
 const createResourceName = (link, type = '') => {
-  const url = new URL(link);
+  const { hostname, pathname } = new URL(link);
 
-  const hostname = url.hostname.split('.');
-  const pathname = url.pathname.split('/');
+  const hostlist = hostname.split('.');
+  const pathlist = pathname.split('/');
 
-  const name = joinLists(hostname, pathname);
+  const lists = unionLists(hostlist, pathlist);
+  const name = _.join(lists, '-');
+
   if (type === 'dir') {
-    return `${name}_file`;
+    return `${name}_files`;
   }
   return hasExtension(pathname) ? name : `${name}.html`;
 };

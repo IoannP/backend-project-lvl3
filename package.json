@@ -1,10 +1,10 @@
 {
-  "name": "hexlet_project_page_loader",
+  "name": "@hexlet/code",
   "version": "1.0.0",
   "description": "page-loader",
   "main": "src/index.js",
   "bin": {
-    "page-loader": "src/bin/loader.js"
+    "page-loader": "bin/loader.js"
   },
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest"
@@ -21,7 +21,6 @@
   },
   "homepage": "https://github.com/IoannP/backend-project-lvl3#readme",
   "devDependencies": {
-    "babel-jest": "^26.6.3",
     "eslint": "^7.9.0",
     "eslint-config-airbnb-base": "^14.2.0",
     "eslint-plugin-import": "^2.22.1",
@@ -37,6 +36,7 @@
     "commander": "^4.1.1",
     "debug": "^2.6.9",
     "listr": "^0.14.3",
+    "lodash": "^4.17.20",
     "prettier": "^2.2.0"
   }
 }
