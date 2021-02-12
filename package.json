@@ -2,15 +2,14 @@
   "name": "hexlet_project_page_loader",
   "version": "1.0.0",
   "description": "page-loader",
-  "main": "dist/index.js",
+  "main": "src/index.js",
   "bin": {
-    "page-loader": "dist/bin/loader.js"
+    "page-loader": "src/bin/loader.js"
   },
   "scripts": {
-    "test": "jest",
-    "build": "NODE_ENV=production babel src --out-dir dist --source-maps inline",
-    "prepublishOnly": "npm run build"
+    "test": "NODE_OPTIONS=--experimental-vm-modules npx jest"
   },
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/IoannP/backend-project-lvl3.git"
@@ -22,16 +21,13 @@
   },
   "homepage": "https://github.com/IoannP/backend-project-lvl3#readme",
   "devDependencies": {
-    "@babel/cli": "^7.11.6",
-    "@babel/core": "^7.11.6",
-    "@babel/preset-env": "^7.11.5",
-    "babel-eslint": "^10.1.0",
-    "babel-jest": "^26.3.0",
+    "babel-jest": "^26.6.3",
     "eslint": "^7.9.0",
     "eslint-config-airbnb-base": "^14.2.0",
-    "eslint-plugin-babel": "^5.3.1",
+    "eslint-plugin-import": "^2.22.1",
     "eslint-plugin-jest": "^24.0.1",
     "jest": "^26.4.2",
+    "jest-cli": "^26.6.3",
     "nock": "^13.0.4"
   },
   "dependencies": {
@@ -40,9 +36,7 @@
     "cheerio": "^1.0.0-rc.3",
     "commander": "^4.1.1",
     "debug": "^2.6.9",
-    "eslint-plugin-import": "^2.22.1",
     "listr": "^0.14.3",
-    "prettier": "^2.2.0",
-    "supports-color": "^8.0.0"
+    "prettier": "^2.2.0"
   }
 }

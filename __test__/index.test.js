@@ -1,5 +1,6 @@
 import nock from 'nock';
 import fs from 'fs';
+import path from 'path';
 import os from 'os';
 import loader from '../src/index';
 import { buildResourcePath, createResourceName } from '../src/utils';
@@ -14,7 +15,7 @@ beforeEach(async () => {
   });
 });
 
-const getFixturesPath = (filename) => buildResourcePath(__dirname, '..', '__fixtures__', filename);
+const getFixturesPath = (filename) => buildResourcePath(path.resolve(), '__fixtures__', filename);
 const getLoadedPath = (filename, dirname = '') => buildResourcePath(testDirectory, dirname, filename);
 
 const tagsMap = {
@@ -58,23 +59,10 @@ test('Load page', async () => {
   const linkPath = getLoadedPath(linkFileName, resDir);
   const scriptPath = getLoadedPath(scriptFileName, resDir);
 
-  let expectedHtml;
-  let expectedImg;
-  let expectedLink;
-  let expectedScript;
-
-  await fs.promises.readFile(tagsMap.html.after, 'utf-8').then((data) => {
-    expectedHtml = data;
-  });
-  await fs.promises.readFile(tagsMap.img.expected, 'utf-8').then((data) => {
-    expectedImg = data;
-  });
-  await fs.promises.readFile(tagsMap.link.expected, 'utf-8').then((data) => {
-    expectedLink = data;
-  });
-  await fs.promises.readFile(tagsMap.script.expected, 'utf-8').then((data) => {
-    expectedScript = data;
-  });
+  const expectedHtml = await fs.promises.readFile(tagsMap.html.after, 'utf-8');
+  const expectedImg = await fs.promises.readFile(tagsMap.img.expected, 'utf-8');
+  const expectedLink = await fs.promises.readFile(tagsMap.link.expected, 'utf-8');
+  const expectedScript = await fs.promises.readFile(tagsMap.script.expected, 'utf-8');
 
   nock(tagsMap.html.url.origin)
     .get(tagsMap.html.url.pathname)
@@ -86,32 +74,17 @@ test('Load page', async () => {
     .get(tagsMap.script.url.pathname)
     .replyWithFile(200, tagsMap.script.expected, tagsMap.script.contentType);
 
-  await loader(tagsMap.html.url.href, testDirectory).catch((error) => {
-    throw error;
-  });
+  await loader(tagsMap.html.url.href, testDirectory);
 
-  let loadedHtml;
-  let loadedImg;
-  let loadedLink;
-  let loadedScript;
+  const loadedHtml = await fs.promises.readFile(htmlPath, 'utf-8');
+  const loadedImg = await fs.promises.readFile(imgPath, 'utf-8');
+  const loadedLink = await fs.promises.readFile(linkPath, 'utf-8');
+  const loadedScript = await fs.promises.readFile(scriptPath, 'utf-8');
 
-  await fs.promises.readFile(htmlPath, 'utf-8').then((data) => {
-    loadedHtml = data;
-  });
-  await fs.promises.readFile(imgPath, 'utf-8').then((data) => {
-    loadedImg = data;
-  });
-  await fs.promises.readFile(linkPath, 'utf-8').then((data) => {
-    loadedLink = data;
-  });
-  await fs.promises.readFile(scriptPath, 'utf-8').then((data) => {
-    loadedScript = data;
-  });
-
-  expect(expectedHtml).toBe(loadedHtml);
-  expect(expectedImg).toBe(loadedImg);
-  expect(expectedLink).toBe(loadedLink);
-  expect(expectedScript).toBe(loadedScript);
+  expect(loadedHtml).toBe(expectedHtml);
+  expect(loadedImg).toBe(expectedImg);
+  expect(loadedLink).toBe(expectedLink);
+  expect(loadedScript).toBe(expectedScript);
 });
 
 describe('errors', () => {
