@@ -2,12 +2,15 @@
   "name": "@hexlet/code",
   "version": "1.0.0",
   "description": "page-loader",
-  "main": "src/index.js",
+  "main": "index.js",
   "bin": {
-    "page-loader": "bin/loader.js"
+    "page-loader": "bin/index.js"
   },
   "scripts": {
     "test": "NODE_OPTIONS=--experimental-vm-modules npx jest"
+  },
+  "engines": {
+    "node": ">=14"
   },
   "type": "module",
   "repository": {
@@ -31,12 +34,10 @@
   },
   "dependencies": {
     "axios": "^0.21.1",
-    "axios-debug-log": "^0.8.2",
     "cheerio": "^1.0.0-rc.3",
     "commander": "^4.1.1",
     "debug": "^2.6.9",
     "listr": "^0.14.3",
-    "lodash": "^4.17.20",
-    "prettier": "^2.2.0"
+    "lodash": "^4.17.20"
   }
 }

@@ -2,8 +2,8 @@ import nock from 'nock';
 import fs from 'fs';
 import process from 'process';
 import os from 'os';
-import loader from '../src/index';
-import { buildResourcePath } from '../src/utils';
+import loader from '../index.js';
+import { buildResourcePath } from '../src/helpers.js';
 
 nock.disableNetConnect();
 
@@ -43,8 +43,8 @@ const loadMap = {
   },
 };
 
-afterEach(() => {
-  fs.rmdirSync(testDirectory, { recursive: true });
+afterEach(async () => {
+  await fs.promises.rmdir(testDirectory, { recursive: true });
 });
 
 test('Load page', async () => {

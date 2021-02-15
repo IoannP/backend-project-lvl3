@@ -2,3 +2,4 @@ dist
 coverage
 __fixtures__
 rough.js
+bin/index.js

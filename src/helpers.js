@@ -1,14 +1,37 @@
 import fs from 'fs';
 import axios from 'axios';
 import Listr from 'listr';
-import prettier from 'prettier';
-import { buildResourcePath, createResourceName } from './utils';
-import log from './debug-loader';
+import path from 'path';
+import _ from 'lodash';
 
 const tagsMap = {
   img: 'src',
   link: 'href',
   script: 'src',
+};
+
+const hasExtension = (pathname) => {
+  const { ext } = path.parse(pathname);
+  return ext.length > 0;
+};
+
+const unionLists = (list1, list2) => [...list1, ...list2].filter((value) => value.length > 0);
+
+const buildResourcePath = (...paths) => path.join(...paths);
+
+const createResourceName = (link, type = '') => {
+  const { hostname, pathname } = new URL(link);
+
+  const hostlist = hostname.split('.');
+  const pathlist = pathname.split('/');
+
+  const lists = unionLists(hostlist, pathlist);
+  const name = _.join(lists, '-');
+
+  if (type === 'dir') {
+    return `${name}_files`;
+  }
+  return hasExtension(pathname) ? name : `${name}.html`;
 };
 
 const isSameOrigin = (url1, url2) => url1.origin === url2.origin;
@@ -17,9 +40,9 @@ const getTags = (html) => Object.keys(tagsMap).flatMap((tag) => html(tag).get())
 
 const createResourcesDir = (link, dir) => {
   const name = createResourceName(link, 'dir');
-  const path = buildResourcePath(dir, name);
-  fs.mkdirSync(path);
-  return { name, path };
+  const dirpath = buildResourcePath(dir, name);
+  fs.promises.mkdir(dirpath);
+  return { name, path: dirpath };
 };
 
 const getLinks = (tags) => tags.map((tag) => {
@@ -66,26 +89,20 @@ const formatHtml = (html, linksData) => {
       }
     });
   });
-  return prettier.format(html.html(), { parser: 'html' });
+  return html.html();
 };
 
-const loadResources = (linksData) => {
+const loadResources = (linksData, log) => {
   const tasks = linksData.map(({ href, filepath }) => ({
     title: href,
     task: (ctx, task) => {
-      log.pageLog(`Write resource data to file ${filepath}`);
+      log('Write resource data to file %s', filepath);
       return axios({
         method: 'GET',
         url: href,
-        responseType: 'stream',
+        responseType: 'arraybuffer',
       })
-        .then(({ data }) => new Promise((resolve, reject) => data
-          .pipe(fs.createWriteStream(filepath))
-          .on('error', (err) => reject(err))
-          .on('finish', () => resolve()))
-          .catch((error) => {
-            throw error;
-          }))
+        .then(({ data }) => fs.promises.writeFile(filepath, data))
         .catch((error) => task.skip(error.message));
     },
   }));
@@ -93,9 +110,19 @@ const loadResources = (linksData) => {
   return new Listr(tasks, { concurrent: true, exitOnError: false }).run();
 };
 
+const writePage = (link, directory, html, log) => {
+  const filename = createResourceName(link);
+  const outputPath = buildResourcePath(directory, filename);
+
+  log('Write html data to file %s', outputPath);
+  return fs.promises.writeFile(outputPath, html).then(() => outputPath);
+};
+
 export {
   generateResourcesLinks,
   loadResources,
   formatHtml,
   createResourcesDir,
+  writePage,
+  buildResourcePath,
 };

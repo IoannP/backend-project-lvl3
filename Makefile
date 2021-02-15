@@ -13,9 +13,6 @@ link:
 lint:
 	npx eslint .
 
-prettier:
-	npx prettier --write .
-
 test:
 	npm test
 
@@ -23,7 +20,7 @@ test-coverage:
 	npm test -- --coverage
 
 debug:
-	DEBUG=page-loader:* npx page-loader https://nodejs.org/en/
+	DEBUG=page-loader npx page-loader https://nodejs.org/en/
 
 debug-test:
 	DEBUG=nock.scope:* make test
