@@ -1,4 +1,5 @@
 import axios from 'axios';
+import axiosDebug from 'axios-debug-log';
 import cheerio from 'cheerio';
 import debug from 'debug';
 import {
@@ -10,9 +11,11 @@ import {
 } from './helpers.js';
 
 const debugLog = debug('page-loader');
+const axiosLog = debug('axios');
 
 export default (link, outputDir) => {
   debugLog('Load page from %s', link);
+  axiosDebug.addLogger(axios, axiosLog);
 
   return axios(link)
     .then(({ data }) => cheerio.load(data))

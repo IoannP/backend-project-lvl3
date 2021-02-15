@@ -45,11 +45,13 @@ const createResourcesDir = (link, dir) => {
   return { name, path: dirpath };
 };
 
-const getLinks = (tags) => tags.map((tag) => {
-  const { name } = tag;
-  const attribute = tagsMap[name];
-  return tag.attribs[attribute];
-});
+const getLinks = (tags) => tags
+  .map((tag) => {
+    const { name } = tag;
+    const attribute = tagsMap[name];
+    return tag.attribs[attribute];
+  })
+  .filter((link) => !!link);
 
 const generateResourcesLinks = (pageLink, resDir, html) => {
   const pageURL = new URL(pageLink);
@@ -96,13 +98,16 @@ const loadResources = (linksData, log) => {
   const tasks = linksData.map(({ href, filepath }) => ({
     title: href,
     task: (ctx, task) => {
-      log('Write resource data to file %s', filepath);
+      log('Load data from %s', href);
       return axios({
         method: 'GET',
         url: href,
         responseType: 'arraybuffer',
       })
-        .then(({ data }) => fs.promises.writeFile(filepath, data))
+        .then(({ data }) => {
+          log('Write resource data to file %s', filepath);
+          return fs.promises.writeFile(filepath, data);
+        })
         .catch((error) => task.skip(error.message));
     },
   }));
