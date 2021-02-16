@@ -19,10 +19,7 @@ export default (link, outputDir) => {
 
   return axios(link)
     .then(({ data }) => cheerio.load(data))
-    .then((html) => {
-      const resDir = createResourcesDir(link, outputDir);
-      return { html, resDir };
-    })
+    .then((html) => createResourcesDir(link, outputDir).then((resDir) => ({ html, resDir })))
     .then(({ html, resDir }) => {
       const resLinks = generateResourcesLinks(link, resDir, html);
       const formattedHtml = formatHtml(html, resLinks);

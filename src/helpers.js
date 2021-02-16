@@ -41,8 +41,8 @@ const getTags = (html) => Object.keys(tagsMap).flatMap((tag) => html(tag).get())
 const createResourcesDir = (link, dir) => {
   const name = createResourceName(link, 'dir');
   const dirpath = buildResourcePath(dir, name);
-  fs.promises.mkdir(dirpath);
-  return { name, path: dirpath };
+
+  return fs.promises.mkdir(dirpath).then(() => ({ name, path: dirpath }));
 };
 
 const getLinks = (tags) => tags

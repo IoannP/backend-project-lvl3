@@ -1,6 +1,5 @@
 import nock from 'nock';
 import fs from 'fs';
-import process from 'process';
 import os from 'os';
 import loader from '../index.js';
 import { buildResourcePath } from '../src/helpers.js';
@@ -15,7 +14,7 @@ beforeEach(async () => {
   });
 });
 
-const getFixturesPath = (filename) => buildResourcePath(process.cwd(), '..', '__fixtures__', filename);
+const getFixturesPath = (filename) => buildResourcePath(process.cwd(), '__fixtures__', filename);
 const getLoadedPath = (...paths) => buildResourcePath(testDirectory, ...paths);
 
 const loadMap = {
@@ -93,7 +92,7 @@ describe('errors', () => {
   test('No such file or directory', async () => {
     nock(loadMap.url.origin)
       .get(loadMap.url.pathname)
-      .reply(200, loadMap.html.before);
+      .reply(200);
 
     await expect(loader(loadMap.url.href, '/test')).rejects.toThrow('no such file or directory');
   });
