@@ -9,9 +9,9 @@ fs.promises
   .then((data) => JSON.parse(data))
   .then(({ version, description }) => {
     program
-      .version(version, '-V, --version', 'output the version number')
+      .version(version, '-v, --version', 'output the version number')
       .description(description)
-      .option('-O, --output [type]', 'the output directory')
+      .option('-o, --output [type]', 'the output directory')
       .arguments('<loadpage>')
       .action((link) => {
         const outputDir = program.output ? program.output : process.cwd();
