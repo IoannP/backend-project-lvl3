@@ -8,6 +8,7 @@ nock.disableNetConnect();
 
 let testDirectory;
 beforeEach(async () => {
+  jest.setTimeout(10000);
   const dirPath = buildResourcePath(os.tmpdir(), 'page-loader-');
   await fs.promises.mkdtemp(dirPath).then((data) => {
     testDirectory = data;
