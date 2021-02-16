@@ -96,6 +96,6 @@ describe('errors', () => {
       .get(loadMap.url.pathname)
       .reply(200);
 
-    await expect(loader(loadMap.url.href, '/test')).rejects.toThrow('no such file or directory');
+    await expect(loader(loadMap.url.href, '/test')).rejects.toThrow(/ENOENT/);
   });
 });
