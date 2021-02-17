@@ -14,7 +14,7 @@ fs.promises
     .arguments('<loadpage>')
     .action((link) => {
       const outputDir = program.output ? program.output : process.cwd();
-      loader(link, outputDir)
+      return loader(link, outputDir)
         .then((pagePath) => console.log(`Page was successfully downloaded into '${pagePath}'`))
         .catch((error) => {
           process.exitCode = 1;
