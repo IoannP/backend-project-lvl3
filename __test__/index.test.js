@@ -1,12 +1,10 @@
 import nock from 'nock';
 import fs from 'fs';
 import os from 'os';
-import { jest } from '@jest/globals';
 import loader from '../index.js';
 import { buildResourcePath } from '../src/helpers.js';
 
 nock.disableNetConnect();
-jest.setTimeout(10000);
 
 let testDirectory;
 beforeEach(async () => {

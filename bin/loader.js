@@ -7,20 +7,18 @@ import loader from '../src/index.js';
 fs.promises
   .readFile('package.json', 'utf-8')
   .then((data) => JSON.parse(data))
-  .then(({ version, description }) => {
-    program
-      .version(version, '-v, --version', 'output the version number')
-      .description(description)
-      .option('-o, --output [type]', 'the output directory')
-      .arguments('<loadpage>')
-      .action((link) => {
-        const outputDir = program.output ? program.output : process.cwd();
-        loader(link, outputDir)
-          .then((pagePath) => console.log(`Page was successfully downloaded into '${pagePath}'`))
-          .catch((error) => {
-            process.exitCode = 1;
-            console.error(`Request failed during load page from ${link}. Error: ${error.message}.`);
-          });
-      })
-      .parse(process.argv);
-  });
+  .then(({ version, description }) => program
+    .version(version, '-v, --version', 'output the version number')
+    .description(description)
+    .option('-o, --output [type]', 'the output directory')
+    .arguments('<loadpage>')
+    .action((link) => {
+      const outputDir = program.output ? program.output : process.cwd();
+      loader(link, outputDir)
+        .then((pagePath) => console.log(`Page was successfully downloaded into '${pagePath}'`))
+        .catch((error) => {
+          process.exitCode = 1;
+          console.error(`Request failed during load page from ${link}. Error: ${error.message}.`);
+        });
+    })
+    .parse(process.argv));
