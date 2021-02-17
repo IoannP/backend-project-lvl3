@@ -105,7 +105,7 @@ const loadResources = (linksData, log) => {
         responseType: 'arraybuffer',
       })
         .then(({ data }) => {
-          log('Write resource data to file %s', filepath);
+          log('Write data to file %s', filepath);
           return fs.promises.writeFile(filepath, data);
         })
         .catch((error) => task.skip(error.message));

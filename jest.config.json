@@ -1,5 +1,4 @@
 {
   "testEnvironment": "node",
-  "transform": {},
-  "testTimeout": 10000
+  "transform": {}
 }

@@ -6,10 +6,10 @@ import loader from '../index.js';
 import { buildResourcePath } from '../src/helpers.js';
 
 nock.disableNetConnect();
+jest.setTimeout(10000);
 
 let testDirectory;
 beforeEach(async () => {
-  jest.setTimeout(10000);
   const dirPath = buildResourcePath(os.tmpdir(), 'page-loader-');
   await fs.promises.mkdtemp(dirPath).then((data) => {
     testDirectory = data;
