@@ -19,7 +19,6 @@ fs.promises
         .catch((error) => {
           process.exitCode = 1;
           console.error(`Request failed during load page from ${link}. Error: ${error.message}.`);
-          throw error;
         });
     })
     .parse(process.argv));

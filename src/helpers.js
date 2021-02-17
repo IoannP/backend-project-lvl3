@@ -108,7 +108,9 @@ const loadResources = (linksData, log) => {
           log('Write data to file %s', filepath);
           return fs.promises.writeFile(filepath, data);
         })
-        .catch((error) => task.skip(error.message));
+        .catch((error) => {
+          throw error;
+        });
     },
   }));
 
