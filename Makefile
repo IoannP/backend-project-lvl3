@@ -20,7 +20,7 @@ test-coverage:
 	npm test -- --coverage
 
 debug:
-	DEBUG=axios,page-loader npx page-loader https://ru.hexlet.io/my
+	DEBUG=axios,page-loader npx page-loader https://nodejs.org/en/
 
 debug-test:
 	DEBUG=nock.scope:* make test

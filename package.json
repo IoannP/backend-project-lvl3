@@ -39,6 +39,7 @@
     "commander": "^4.1.1",
     "debug": "^2.6.9",
     "listr": "^0.14.3",
-    "lodash": "^4.17.20"
+    "lodash": "^4.17.20",
+    "typescript": "^4.1.5"
   }
 }
