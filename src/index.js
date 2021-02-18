@@ -16,7 +16,7 @@ const axiosLog = debug('axios');
 export default (link, outputDir) => {
   debugLog('Load page from %s', link);
   axiosDebug.addLogger(axios, axiosLog);
-  axios.defaults.timeout = 4000;
+  axios.defaults.validateStatus = (status) => status === 200;
 
   return axios(link)
     .then(({ data }) => cheerio.load(data))
