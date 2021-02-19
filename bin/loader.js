@@ -18,7 +18,8 @@ fs.promises
         .then((pagePath) => console.log(`Page was successfully downloaded into '${pagePath}'`))
         .catch((error) => {
           process.exitCode = 1;
-          console.error(`Request failed during load page from ${link}. Error: ${error.message}.`);
+          throw new Error(`Request failed during load page from ${link}. Error: ${error.message}.`);
         });
     })
-    .parse(process.argv));
+    .parse(process.argv))
+  .catch(console.error);
