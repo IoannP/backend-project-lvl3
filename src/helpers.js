@@ -10,40 +10,59 @@ const tagsMap = {
   script: 'src',
 };
 
-const hasExtension = (pathname) => {
-  const { ext } = path.parse(pathname);
-  return ext.length > 0;
+const processName = (name, replacer) => name.match(/(?<=\/|\.)[a-z_\-0-9]+/gi).join(replacer);
+
+const urlToFilename = (link, defaultFormat = '.html') => {
+  const { dir, ext, name } = path.parse(link);
+  const fileName = processName(dir, '-');
+  const fileExtention = ext || defaultFormat;
+
+  return `${fileName}-${name}${fileExtention}`;
 };
 
-const unionLists = (list1, list2) => [...list1, ...list2].filter((value) => value.length > 0);
+const urlToDirname = (link, postfix) => {
+  const { dir } = path.parse(link);
+  const dirName = processName(dir, '-');
 
-const buildResourcePath = (...paths) => path.join(...paths);
-
-const createResourceName = (link, type = '') => {
-  const { hostname, pathname } = new URL(link);
-
-  const hostlist = hostname.split('.');
-  const pathlist = pathname.split('/');
-
-  const lists = unionLists(hostlist, pathlist);
-  const name = _.join(lists, '-');
-
-  if (type === 'dir') {
-    return `${name}_files`;
-  }
-  return hasExtension(pathname) ? name : `${name}.html`;
+  return `${dirName}${postfix}`;
 };
 
-const isSameOrigin = (url1, url2) => url1.origin === url2.origin;
+const loadContent = (link) => axios({
+  method: 'GET',
+  url: link,
+  responseType: 'arraybuffer',
+})
+  .then(({ data }) => data);
+
+const createFile = (filepath, content) => fs.promises.writeFile(filepath, content);
+const createDir = (dirpath) => fs.promises.mkdir(dirpath);
+// const hasExtension = (pathname) => {
+//   const { ext } = path.parse(pathname);
+//   return ext.length > 0;
+// };
+
+// const unionLists = (list1, list2) => [...list1, ...list2].filter((value) => value.length > 0);
+
+// const buildResourcePath = (...paths) => path.join(...paths);
+
+// const createResourceName = (link, type = '') => {
+//   const { hostname, pathname } = new URL(link);
+
+//   const hostlist = hostname.split('.');
+//   const pathlist = pathname.split('/');
+
+//   const lists = unionLists(hostlist, pathlist);
+//   const name = _.join(lists, '-');
+
+//   if (type === 'dir') {
+//     return `${name}_files`;
+//   }
+//   return hasExtension(pathname) ? name : `${name}.html`;
+// };
+
+// const isSameOrigin = (url1, url2) => url1.origin === url2.origin;
 
 const getTags = (html) => Object.keys(tagsMap).flatMap((tag) => html(tag).get());
-
-const createResourcesDir = (link, dir) => {
-  const name = createResourceName(link, 'dir');
-  const dirpath = buildResourcePath(dir, name);
-
-  return fs.promises.mkdir(dirpath).then(() => ({ name, path: dirpath }));
-};
 
 const getLinks = (tags) => tags
   .map((tag) => {
@@ -66,9 +85,7 @@ const generateResourcesLinks = (pageLink, resDir, html) => {
     })
     .filter(({ url }) => isSameOrigin(pageURL, url))
     .map(({ link, url }) => {
-      const filename = createResourceName(url.href);
-      const filepath = buildResourcePath(resDir.path, filename);
-      const newLink = buildResourcePath(resDir.name, filename);
+      
 
       return {
         oldLink: link,
@@ -97,19 +114,12 @@ const formatHtml = (html, linksData) => {
 const loadResources = (linksData, log) => {
   const tasks = linksData.map(({ href, filepath }) => ({
     title: href,
-    task: (ctx, task) => {
-      log('Load data from %s', href);
-      return axios({
-        method: 'GET',
-        url: href,
-        responseType: 'arraybuffer',
+    task: (ctx, task) => loadContent(href)
+      .then((content) => {
+        log('Create file %s', href);
+        createFile(filepath, content);
       })
-        .then(({ data }) => {
-          log('Write data to file %s', filepath);
-          return fs.promises.writeFile(filepath, data);
-        })
-        .catch((error) => task.skip(error.message));
-    },
+      .catch((error) => task.skip(error.message)),
   }));
 
   return new Listr(tasks, { concurrent: true, exitOnError: false }).run();
@@ -124,10 +134,6 @@ const writePage = (link, directory, html, log) => {
 };
 
 export {
-  generateResourcesLinks,
-  loadResources,
-  formatHtml,
-  createResourcesDir,
-  writePage,
-  buildResourcePath,
+  urlToDirname,
+  urlToFilename,
 };
