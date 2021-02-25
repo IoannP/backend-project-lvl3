@@ -1,21 +1,21 @@
+import path from 'path';
 import nock from 'nock';
 import fs from 'fs';
 import os from 'os';
 import loader from '../index.js';
-import { buildResourcePath } from '../src/helpers.js';
 
 nock.disableNetConnect();
 
 let testDirectory;
 beforeEach(async () => {
-  const dirPath = buildResourcePath(os.tmpdir(), 'page-loader-');
+  const dirPath = path.join(os.tmpdir(), 'page-loader-');
   await fs.promises.mkdtemp(dirPath).then((data) => {
     testDirectory = data;
   });
 });
 
-const getFixturesPath = (filename) => buildResourcePath(process.cwd(), '__fixtures__', filename);
-const getLoadedPath = (...paths) => buildResourcePath(testDirectory, ...paths);
+const getFixturesPath = (filename) => path.join(process.cwd(), '__fixtures__', filename);
+const getLoadedPath = (...paths) => path.join(testDirectory, ...paths);
 
 const loadMap = {
   url: new URL('https://nodejs.org/en/'),

@@ -2,7 +2,6 @@ import fs from 'fs';
 import axios from 'axios';
 import Listr from 'listr';
 import path from 'path';
-import _ from 'lodash';
 
 const tagsMap = {
   img: 'src',
@@ -21,46 +20,23 @@ const urlToFilename = (link, defaultFormat = '.html') => {
 };
 
 const urlToDirname = (link, postfix) => {
-  const { dir } = path.parse(link);
+  const { dir, name } = path.parse(link);
   const dirName = processName(dir, '-');
 
-  return `${dirName}${postfix}`;
+  return `${dirName}-${name}_${postfix}`;
 };
 
 const loadContent = (link) => axios({
   method: 'GET',
   url: link,
   responseType: 'arraybuffer',
-})
-  .then(({ data }) => data);
+}).then(({ data }) => data);
 
 const createFile = (filepath, content) => fs.promises.writeFile(filepath, content);
+
 const createDir = (dirpath) => fs.promises.mkdir(dirpath);
-// const hasExtension = (pathname) => {
-//   const { ext } = path.parse(pathname);
-//   return ext.length > 0;
-// };
 
-// const unionLists = (list1, list2) => [...list1, ...list2].filter((value) => value.length > 0);
-
-// const buildResourcePath = (...paths) => path.join(...paths);
-
-// const createResourceName = (link, type = '') => {
-//   const { hostname, pathname } = new URL(link);
-
-//   const hostlist = hostname.split('.');
-//   const pathlist = pathname.split('/');
-
-//   const lists = unionLists(hostlist, pathlist);
-//   const name = _.join(lists, '-');
-
-//   if (type === 'dir') {
-//     return `${name}_files`;
-//   }
-//   return hasExtension(pathname) ? name : `${name}.html`;
-// };
-
-// const isSameOrigin = (url1, url2) => url1.origin === url2.origin;
+const isSameOrigin = (url1, url2) => url1.origin === url2.origin;
 
 const getTags = (html) => Object.keys(tagsMap).flatMap((tag) => html(tag).get());
 
@@ -72,7 +48,7 @@ const getLinks = (tags) => tags
   })
   .filter((link) => !!link);
 
-const generateResourcesLinks = (pageLink, resDir, html) => {
+const generateResourcesLinks = (pageLink, resDirpath, resDirname, html) => {
   const pageURL = new URL(pageLink);
 
   const tags = getTags(html);
@@ -81,11 +57,13 @@ const generateResourcesLinks = (pageLink, resDir, html) => {
   return links
     .map((link) => {
       const url = new URL(link, pageLink);
-      return { link, url };
+      return { url, link };
     })
     .filter(({ url }) => isSameOrigin(pageURL, url))
     .map(({ link, url }) => {
-      
+      const filename = urlToFilename(url.href);
+      const newLink = path.join(resDirname, filename);
+      const filepath = path.join(resDirpath, filename);
 
       return {
         oldLink: link,
@@ -125,15 +103,12 @@ const loadResources = (linksData, log) => {
   return new Listr(tasks, { concurrent: true, exitOnError: false }).run();
 };
 
-const writePage = (link, directory, html, log) => {
-  const filename = createResourceName(link);
-  const outputPath = buildResourcePath(directory, filename);
-
-  log('Write html data to file %s', outputPath);
-  return fs.promises.writeFile(outputPath, html).then(() => outputPath);
-};
-
 export {
   urlToDirname,
   urlToFilename,
+  createFile,
+  createDir,
+  generateResourcesLinks,
+  formatHtml,
+  loadResources,
 };

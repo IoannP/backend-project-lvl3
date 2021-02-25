@@ -1,13 +1,16 @@
+import path from 'path';
 import axios from 'axios';
 import axiosDebug from 'axios-debug-log';
 import cheerio from 'cheerio';
 import debug from 'debug';
 import {
+  urlToDirname,
+  urlToFilename,
+  createFile,
+  createDir,
   generateResourcesLinks,
-  loadResources,
   formatHtml,
-  createResourcesDir,
-  writePage,
+  loadResources,
 } from './helpers.js';
 
 const debugLog = debug('page-loader');
@@ -20,13 +23,23 @@ export default (link, outputDir) => {
 
   return axios(link)
     .then(({ data }) => cheerio.load(data))
-    .then((html) => createResourcesDir(link, outputDir).then((resDir) => ({ html, resDir })))
-    .then(({ html, resDir }) => {
-      const resLinks = generateResourcesLinks(link, resDir, html);
+    .then((html) => {
+      const resDirname = urlToDirname(link, 'files');
+      const resDirpath = path.join(outputDir, resDirname);
+
+      return createDir(resDirpath).then(() => ({ html, resDirpath, resDirname }));
+    })
+    .then(({ html, resDirpath, resDirname }) => {
+      const resLinks = generateResourcesLinks(link, resDirpath, resDirname, html);
       const formattedHtml = formatHtml(html, resLinks);
 
       return { html: formattedHtml, resLinks };
     })
     .then(({ html, resLinks }) => loadResources(resLinks, debugLog).then(() => html))
-    .then((html) => writePage(link, outputDir, html, debugLog));
+    .then((html) => {
+      const filename = urlToFilename(link);
+      const filepath = path.join(outputDir, filename);
+
+      return createFile(filepath, html).then(() => filepath);
+    });
 };
